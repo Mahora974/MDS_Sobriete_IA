@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+
+# Environnement (ne JAMAIS commiter la cle API)
+.env
+
+# Rapports generes
+reports/*.json
+
+# Cache modeles d'embeddings (Sprint 2)
+.cache/
+models/
+
+# Divers
+*.log
+.DS_Store
+
+.claude
