@@ -64,6 +64,7 @@ async function main(): Promise<void> {
   // 2. Rejoue les prompts séquentiellement (ordre stable => cache reproductible).
   const start = Date.now();
   let ok = 0;
+  let done = 0;
   for (const entry of prompts) {
     const res = await fetch(`${BASE}/api/chat`, {
       method: "POST",
@@ -72,6 +73,9 @@ async function main(): Promise<void> {
     });
     if (res.ok) ok += 1;
     else console.error(`  ! requete ${entry.id} echouee (HTTP ${res.status})`);
+    // Ligne de progression machine-lisible (consommée par le dashboard en SSE).
+    done += 1;
+    console.log(`[PROGRESS] ${done}/${prompts.length} ok=${ok}`);
   }
   const elapsedMs = Date.now() - start;
 

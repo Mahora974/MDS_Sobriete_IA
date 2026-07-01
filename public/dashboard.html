@@ -51,17 +51,55 @@
         padding: 0.5rem 1rem; font-weight: 600; cursor: pointer; font-size: 0.9rem;
       }
       button:hover { opacity: 0.9; }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
+      button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+      .run-btn { margin-top: 1rem; width: 100%; }
       .toolbar { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
       .muted { color: var(--muted); font-size: 0.85rem; }
       .empty { color: var(--muted); font-style: italic; }
+      .overlay {
+        position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
+        display: none; align-items: center; justify-content: center; z-index: 10;
+      }
+      .overlay.open { display: flex; }
+      .modal {
+        background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+        padding: 1.5rem; width: min(90vw, 460px);
+      }
+      .modal h3 { margin: 0 0 0.25rem; font-size: 1.1rem; }
+      .modal .sub { margin: 0 0 1.25rem; }
+      .bar { height: 12px; background: var(--border); border-radius: 999px; overflow: hidden; }
+      .bar > span { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.2s ease; }
+      .progress-meta { display: flex; justify-content: space-between; margin-top: 0.6rem; font-size: 0.9rem; }
+      .progress-meta .ok { color: var(--green); background: none; padding: 0; }
+      .modal-actions { margin-top: 1.5rem; text-align: right; }
+      .grid-cells { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; margin-top: 1rem; }
+      .grid-cells i { aspect-ratio: 1; border-radius: 2px; background: var(--border); transition: background 0.15s; }
+      .grid-cells i.hit { background: var(--accent); }
     </style>
   </head>
   <body>
+    <div class="overlay" id="overlay">
+      <div class="modal">
+        <h3 id="modal-title">Benchmark en cours…</h3>
+        <p class="sub muted" id="modal-sub">Rejeu des prompts à travers le proxy.</p>
+        <div class="bar"><span id="bar-fill"></span></div>
+        <div class="progress-meta">
+          <span id="progress-count">0 / 0 requêtes</span>
+          <span class="ok" id="progress-ok">0 OK</span>
+        </div>
+        <div class="grid-cells" id="grid-cells"></div>
+        <div class="modal-actions">
+          <button class="secondary" id="modal-close" onclick="closeModal()">Annuler</button>
+        </div>
+      </div>
+    </div>
+
     <h1>Dashboard GreenOps</h1>
     <p class="sub">Proxy d'éco-conception IA — synthèse cumulée Avant (V1) vs Après (V2)</p>
 
     <div class="toolbar">
-      <button onclick="load()">Rafraîchir</button>
+      <button class="secondary" onclick="resetMetrics()">Réinitialiser</button>
       <span class="muted" id="status">Chargement…</span>
     </div>
 
@@ -78,10 +116,12 @@
       <div class="card">
         <h2>V1 — Mode naïf</h2>
         <table id="table-v1"></table>
+        <button class="run-btn" id="btn-v1" onclick="runBenchmark('v1')">▶ Lancer le benchmark V1</button>
       </div>
       <div class="card">
         <h2>V2 — Mode responsable</h2>
         <table id="table-v2"></table>
+        <button class="run-btn" id="btn-v2" onclick="runBenchmark('v2')">▶ Lancer le benchmark V2</button>
       </div>
       <div class="card">
         <h2>Objectifs (KPIs)</h2>
@@ -153,6 +193,97 @@
         } catch (e) {
           status.textContent = "Erreur de chargement des métriques.";
         }
+      }
+
+      // Remet à zéro les métriques cumulées + le cache sémantique, puis recharge.
+      async function resetMetrics() {
+        const status = document.getElementById("status");
+        status.textContent = "Réinitialisation…";
+        try {
+          await fetch("/api/metrics/reset", { method: "POST" });
+          await fetch("/api/cache/reset", { method: "POST" });
+          await load();
+          status.textContent = "Métriques réinitialisées.";
+        } catch (e) {
+          status.textContent = "Erreur lors de la réinitialisation.";
+        }
+      }
+
+      // État de la démo live (flux SSE + éléments de la modale).
+      let currentStream = null;
+
+      function setButtonsDisabled(disabled) {
+        [document.getElementById("btn-v1"), document.getElementById("btn-v2")].forEach(
+          (b) => (b.disabled = disabled),
+        );
+      }
+
+      function renderCells(total) {
+        const grid = document.getElementById("grid-cells");
+        grid.innerHTML = Array.from({ length: total }, () => "<i></i>").join("");
+        return grid.children;
+      }
+
+      function closeModal() {
+        if (currentStream) {
+          currentStream.close();
+          currentStream = null;
+        }
+        document.getElementById("overlay").classList.remove("open");
+        setButtonsDisabled(false);
+      }
+
+      // Démo live : lance le benchmark d'un mode et suit la progression en SSE.
+      function runBenchmark(mode) {
+        const status = document.getElementById("status");
+        setButtonsDisabled(true);
+
+        const label = mode.toUpperCase();
+        document.getElementById("modal-title").textContent = "Benchmark " + label + " en cours…";
+        document.getElementById("modal-sub").textContent =
+          mode === "v2" ? "Pipeline responsable (cache + routage + troncature)." : "Pipeline naïf.";
+        document.getElementById("bar-fill").style.width = "0";
+        document.getElementById("progress-count").textContent = "0 / 0 requêtes";
+        document.getElementById("progress-ok").textContent = "0 OK";
+        document.getElementById("grid-cells").innerHTML = "";
+        const closeBtn = document.getElementById("modal-close");
+        closeBtn.textContent = "Annuler";
+        document.getElementById("overlay").classList.add("open");
+        status.textContent = "Benchmark " + label + " en cours…";
+
+        const es = new EventSource("/api/benchmark/" + mode + "/stream");
+        currentStream = es;
+        let cells = null;
+
+        es.addEventListener("progress", (ev) => {
+          const p = JSON.parse(ev.data);
+          if (!cells) cells = renderCells(p.total);
+          const pct = Math.round((p.done / p.total) * 100);
+          document.getElementById("bar-fill").style.width = pct + "%";
+          document.getElementById("progress-count").textContent =
+            p.done + " / " + p.total + " requêtes";
+          document.getElementById("progress-ok").textContent = p.ok + " OK";
+          if (cells[p.done - 1]) cells[p.done - 1].classList.add("hit");
+        });
+
+        es.addEventListener("done", async () => {
+          es.close();
+          currentStream = null;
+          document.getElementById("modal-title").textContent = "Benchmark " + label + " terminé ✓";
+          closeBtn.textContent = "Fermer";
+          await load();
+          status.textContent = "Benchmark " + label + " terminé.";
+          setButtonsDisabled(false);
+        });
+
+        es.addEventListener("error", () => {
+          es.close();
+          currentStream = null;
+          document.getElementById("modal-title").textContent = "Échec du benchmark " + label;
+          closeBtn.textContent = "Fermer";
+          status.textContent = "Échec du benchmark " + label + ".";
+          setButtonsDisabled(false);
+        });
       }
 
       load();

@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { naiveProxyHandler } from "./proxy/naiveProxy.js";
@@ -47,6 +48,57 @@ app.post("/api/metrics/reset", (req, res) => {
 app.post("/api/cache/reset", (_req, res) => {
   clearCache();
   res.json({ status: "cache-reset" });
+});
+
+// Lance le benchmark d'un mode (v1 ou v2) et streame la progression en SSE.
+// Sert la démo live : la modale du dashboard suit les 100 requêtes en temps réel.
+app.get("/api/benchmark/:mode/stream", (req, res) => {
+  const mode = req.params.mode === "v2" ? "v2" : "v1";
+  const cwd = join(__dirname, "..");
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  const send = (event: string, data: unknown) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  // Rejoue le simulateur de charge dans un sous-processus (même commande qu'en CLI).
+  const child = spawn("npx", ["tsx", "scripts/run-benchmark.ts", `--mode=${mode}`], {
+    cwd,
+    shell: true,
+    env: process.env,
+  });
+
+  let stdoutBuf = "";
+  child.stdout.on("data", (d) => {
+    stdoutBuf += d.toString();
+    const lines = stdoutBuf.split("\n");
+    stdoutBuf = lines.pop() ?? ""; // garde la ligne partielle pour le prochain chunk
+    for (const line of lines) {
+      const m = line.match(/^\[PROGRESS\] (\d+)\/(\d+) ok=(\d+)/);
+      if (m) {
+        send("progress", { done: +m[1], total: +m[2], ok: +m[3] });
+      }
+    }
+  });
+  child.stderr.on("data", (d) => send("log", { line: d.toString() }));
+
+  child.on("close", (code) => {
+    send(code === 0 ? "done" : "error", { mode, code });
+    res.end();
+  });
+  child.on("error", (err) => {
+    send("error", { mode, message: err.message });
+    res.end();
+  });
+
+  // Si le client ferme la modale, on tue le sous-processus.
+  req.on("close", () => {
+    if (!child.killed) child.kill();
+  });
 });
 
 // Dashboard GreenOps — page statique servie par le backend.

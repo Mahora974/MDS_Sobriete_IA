@@ -90,8 +90,12 @@ export function summarizeAll() {
   const v1 = summarize("v1");
   const v2 = summarize("v2");
 
+  // La comparaison n'a de sens que si les DEUX modes ont tourné : sinon un mode
+  // vide (totaux à 0) serait interprété comme « 100 % de réduction » (faux positif).
+  const comparable = v1.requests > 0 && v2.requests > 0;
+
   const reduction = (before: number, after: number): number =>
-    before > 0 ? round((1 - after / before) * 100, 2) : 0;
+    comparable && before > 0 ? round((1 - after / before) * 100, 2) : 0;
 
   return {
     v1,
