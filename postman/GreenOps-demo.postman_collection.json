@@ -1,0 +1,291 @@
+{
+  "info": {
+    "name": "GreenOps — Démo Proxy éco-conception IA",
+    "description": "Collection de démo live.\n\nPré-requis : le serveur tourne (`npm run dev`) sur le port de ton .env (3000 par défaut).\nAvec SIMULATE_LLM=true, aucune clé API n'est consommée.\n\nOrdre conseillé pour la démo :\n  0. Préparation (santé + reset)\n  1. Démonstration des headers (X-Calculated-Impact-*)\n  2. Efficacité du cache (MISS puis HIT à impact 0)\n  3. Bilan (métriques cumulées)\n\nAdapte {{baseUrl}} si ton PORT diffère.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "cachePrompt",
+      "value": "Quelle est la capitale de la France ?",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Préparation",
+      "item": [
+        {
+          "name": "Santé du serveur",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Vérifie que le proxy répond avant de démarrer la démo."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Serveur en ligne (200)', () => pm.response.to.have.status(200));",
+                  "pm.test(\"status = 'ok'\", () => pm.expect(pm.response.json().status).to.eql('ok'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reset métriques (V1 + V2)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/metrics/reset",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metrics", "reset"]
+            },
+            "description": "Remet à zéro les compteurs pour repartir d'un tableau propre."
+          }
+        },
+        {
+          "name": "Reset cache sémantique",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cache/reset",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cache", "reset"]
+            },
+            "description": "Vide le cache pour que la démo du HIT parte d'un état vierge."
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Démonstration des headers",
+      "item": [
+        {
+          "name": "V2 — requête responsable (montrer les headers)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Traduis 'bonjour le monde' en anglais\",\n  \"mode\": \"v2\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat"]
+            },
+            "description": "Requête simple → routée vers Haiku + troncature. Ouvre l'onglet 'Headers' de la réponse : le middleware y injecte l'impact calculé."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const h = (k) => pm.response.headers.get(k);",
+                  "console.log('--- Headers d\\'impact injectés ---');",
+                  "console.log('X-Model-Used            :', h('X-Model-Used'));",
+                  "console.log('X-Cache                 :', h('X-Cache'));",
+                  "console.log('X-Calculated-Impact-Wh  :', h('X-Calculated-Impact-Wh'));",
+                  "console.log('X-Calculated-Impact-gCO2e :', h('X-Calculated-Impact-gCO2e'));",
+                  "console.log('X-Calculated-Impact-WaterMl :', h('X-Calculated-Impact-WaterMl'));",
+                  "",
+                  "pm.test('Header X-Calculated-Impact-Wh présent', () => pm.expect(h('X-Calculated-Impact-Wh')).to.not.be.null);",
+                  "pm.test('Header X-Calculated-Impact-gCO2e présent', () => pm.expect(h('X-Calculated-Impact-gCO2e')).to.not.be.null);",
+                  "pm.test('Header X-Model-Used présent', () => pm.expect(h('X-Model-Used')).to.not.be.null);",
+                  "pm.test('Routée vers Haiku (tâche simple)', () => pm.expect(h('X-Model-Used')).to.include('haiku'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V1 — même intention en mode naïf (contraste)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Traduis 'bonjour le monde' en anglais\",\n  \"mode\": \"v1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat"]
+            },
+            "description": "Même prompt en V1 : gros modèle (Sonnet) + max_tokens élevé. Compare l'impact Wh avec la version V2 ci-dessus — il est bien plus lourd."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const h = (k) => pm.response.headers.get(k);",
+                  "console.log('V1 — X-Model-Used           :', h('X-Model-Used') || '(non injecté en V1)');",
+                  "console.log('V1 — impact Wh (body)       :', pm.response.json().impact.energyWh);",
+                  "pm.test('V1 utilise le gros modèle (Sonnet)', () => pm.expect(pm.response.json().model).to.include('sonnet'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Efficacité du cache",
+      "item": [
+        {
+          "name": "1er appel — MISS (appel LLM, impact > 0)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"{{cachePrompt}}\",\n  \"mode\": \"v2\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat"]
+            },
+            "description": "Premier passage d'un prompt jamais vu : le cache est vide → MISS → appel LLM réel. Note le temps de réponse et l'impact."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const h = (k) => pm.response.headers.get(k);",
+                  "console.log('1er appel — X-Cache          :', h('X-Cache'));",
+                  "console.log('1er appel — impact Wh        :', h('X-Calculated-Impact-Wh'));",
+                  "console.log('1er appel — temps de réponse :', pm.response.responseTime, 'ms');",
+                  "pm.test('C\\'est un MISS', () => pm.expect(h('X-Cache')).to.eql('MISS'));",
+                  "pm.test('Impact > 0 (le LLM a été appelé)', () => pm.expect(Number(h('X-Calculated-Impact-Wh'))).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2e appel — HIT (même prompt, impact = 0, instantané)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"{{cachePrompt}}\",\n  \"mode\": \"v2\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat"]
+            },
+            "description": "MÊME prompt rejoué : le cache le reconnaît (similarité 1.0) → HIT → réponse instantanée, LLM court-circuité, impact 0. C'est LA preuve visuelle attendue par le CDC."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const h = (k) => pm.response.headers.get(k);",
+                  "console.log('2e appel — X-Cache          :', h('X-Cache'));",
+                  "console.log('2e appel — impact Wh        :', h('X-Calculated-Impact-Wh'), '(attendu 0)');",
+                  "console.log('2e appel — temps de réponse :', pm.response.responseTime, 'ms (bien plus rapide)');",
+                  "pm.test('C\\'est un HIT', () => pm.expect(h('X-Cache')).to.eql('HIT'));",
+                  "pm.test('Impact carbone nul', () => pm.expect(Number(h('X-Calculated-Impact-Wh'))).to.eql(0));",
+                  "pm.test('cacheHit = true dans le corps', () => pm.expect(pm.response.json().cacheHit).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Bonus — prompt reformulé (HIT sémantique)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Capitale de la France ?\",\n  \"mode\": \"v2\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat"]
+            },
+            "description": "Prompt DIFFÉRENT mot pour mot mais de même sens. Si la similarité dépasse le seuil 0.92, c'est un HIT : le cache est bien *sémantique*, pas juste *exact*. (Selon le seuil, peut retomber en MISS — à tester avant la démo.)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const h = (k) => pm.response.headers.get(k);",
+                  "const body = pm.response.json();",
+                  "console.log('Reformulé — X-Cache    :', h('X-Cache'));",
+                  "console.log('Reformulé — similarité :', body.similarity !== undefined ? body.similarity : '(MISS)');",
+                  "console.log(h('X-Cache') === 'HIT' ? '→ HIT sémantique : le cache reconnaît le sens.' : '→ MISS : sous le seuil 0.92, réponse recalculée.');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Bilan cumulé",
+      "item": [
+        {
+          "name": "Métriques V1 vs V2 + % d'économie",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/metrics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metrics"]
+            },
+            "description": "Synthèse cumulée. Après un run complet du benchmark (V1 puis V2), 'comparison' donne les % de réduction énergie/GES et le taux de hit cache."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const m = pm.response.json();",
+                  "console.log('--- Bilan cumulé ---');",
+                  "console.log('V1 requêtes / énergie Wh :', m.v1.requests, '/', m.v1.totals.energyWh);",
+                  "console.log('V2 requêtes / énergie Wh :', m.v2.requests, '/', m.v2.totals.energyWh);",
+                  "console.log('Réduction énergie :', m.comparison.energyReductionPct, '%');",
+                  "console.log('Réduction GES     :', m.comparison.co2ReductionPct, '%');",
+                  "console.log('Taux hit cache    :', m.comparison.cacheHitRatePct, '%');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

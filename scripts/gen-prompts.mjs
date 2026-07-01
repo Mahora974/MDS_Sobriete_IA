@@ -1,5 +1,6 @@
-// Générateur déterministe du jeu de 100 prompts (data/prompts.json).
-// Répartition : 40 répétitifs (8 bases x 5) + 35 simples + 25 complexes.
+// Générateur déterministe du jeu de prompts (data/prompts.json).
+// Taille paramétrable via --count=N (défaut 100). Répartition conservée :
+// 40 % répétitifs (rejoués pour alimenter le cache) + 35 % simples + 25 % complexes.
 import { writeFileSync } from "node:fs";
 
 // prompts RÉPÉTITIFS -> alimentent le cache (chacun répété 5x)
@@ -82,18 +83,40 @@ const complex = [
   "Redige une note de synthese sur les modeles de langage et leur cout energetique.",
 ];
 
+// Nombre total de prompts visé, paramétrable :  node scripts/gen-prompts.mjs --count=30
+// (défaut 100). La répartition 40 % répétitifs / 35 % simples / 25 % complexes est
+// préservée quelle que soit la taille, de même qu'un taux de doublons suffisant pour
+// garantir le KPI « hit cache >= 25 % ».
+const countArg = process.argv.find((a) => a.startsWith("--count="))?.split("=")[1];
+const count = Math.max(6, Number(countArg) || 100);
+
+const nRep = Math.round(count * 0.4);
+const nSimple = Math.round(count * 0.35);
+const nComplex = count - nRep - nSimple;
+
+// Répétitifs : on répartit nRep sur un nombre de bases distinctes tel que chaque base
+// soit rejouée ~4-5 fois (=> doublons = nRep - basesUtilisées, donc du cache à revendre).
+const basesToUse = Math.min(repeatBase.length, Math.max(2, Math.floor(nRep / 4)));
+const perBase = Math.floor(nRep / basesToUse);
+const extra = nRep - perBase * basesToUse; // répétitions résiduelles à saupoudrer
+
 const prompts = [];
 let id = 1;
-for (const p of repeatBase) {
-  for (let k = 0; k < 5; k++) prompts.push({ id: id++, category: "repetitif", prompt: p });
+for (let b = 0; b < basesToUse; b++) {
+  const times = perBase + (b < extra ? 1 : 0);
+  for (let k = 0; k < times; k++) {
+    prompts.push({ id: id++, category: "repetitif", prompt: repeatBase[b] });
+  }
 }
-for (const p of simple) prompts.push({ id: id++, category: "simple", prompt: p });
-for (const p of complex) prompts.push({ id: id++, category: "complexe", prompt: p });
+for (const p of simple.slice(0, nSimple)) prompts.push({ id: id++, category: "simple", prompt: p });
+for (const p of complex.slice(0, nComplex)) prompts.push({ id: id++, category: "complexe", prompt: p });
 
 writeFileSync("data/prompts.json", JSON.stringify(prompts, null, 2) + "\n");
 
 const counts = prompts.reduce((a, p) => ((a[p.category] = (a[p.category] || 0) + 1), a), {});
 const uniq = new Set(prompts.map((p) => p.prompt)).size;
+const expectedHits = prompts.length - uniq; // 1er passage d'un prompt = MISS, suivants = HIT
 console.log(
-  `Total: ${prompts.length} | ${JSON.stringify(counts)} | uniques: ${uniq} | doublons: ${prompts.length - uniq}`,
+  `Total: ${prompts.length} | ${JSON.stringify(counts)} | uniques: ${uniq} | doublons: ${expectedHits} ` +
+    `(hit cache attendu ~${((expectedHits / prompts.length) * 100).toFixed(1)}%)`,
 );
