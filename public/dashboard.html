@@ -94,6 +94,8 @@
       .grid-cells { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; margin-top: 1rem; }
       .grid-cells i { aspect-ratio: 1; border-radius: 2px; background: var(--border); transition: background 0.15s; }
       .grid-cells i.hit { background: var(--accent); }
+      .grid-cells i.fail { background: var(--red); }
+      .modal .warn { color: var(--red); font-size: 0.85rem; margin: 0.75rem 0 0; word-break: break-word; }
     </style>
   </head>
   <body>
@@ -107,6 +109,7 @@
           <span class="ok" id="progress-ok">0 OK</span>
         </div>
         <div class="grid-cells" id="grid-cells"></div>
+        <p class="warn" id="modal-warn" style="display: none"></p>
         <div class="modal-actions">
           <button class="secondary" id="modal-close" onclick="closeModal()">Annuler</button>
         </div>
@@ -305,8 +308,11 @@
           mode === "v2" ? "Pipeline responsable (cache + routage + troncature)." : "Pipeline naïf.";
         document.getElementById("bar-fill").style.width = "0";
         document.getElementById("progress-count").textContent = "0 / 0 requêtes";
-        document.getElementById("progress-ok").textContent = "0 OK";
+        document.getElementById("progress-ok").textContent = "0 OK · 0 KO";
         document.getElementById("grid-cells").innerHTML = "";
+        const warn = document.getElementById("modal-warn");
+        warn.style.display = "none";
+        warn.textContent = "";
         const closeBtn = document.getElementById("modal-close");
         closeBtn.textContent = "Annuler";
         document.getElementById("overlay").classList.add("open");
@@ -315,25 +321,53 @@
         const es = new EventSource("/api/benchmark/" + mode + "/stream?count=" + volume);
         currentStream = es;
         let cells = null;
+        let prevOk = 0; // pour déduire si LA dernière requête a réussi ou échoué
+        let lastState = { done: 0, total: 0, ok: 0 };
+        let lastError = ""; // dernier message d'erreur capté sur le flux
 
         es.addEventListener("progress", (ev) => {
           const p = JSON.parse(ev.data);
+          lastState = p;
           if (!cells) cells = renderCells(p.total);
           const pct = Math.round((p.done / p.total) * 100);
           document.getElementById("bar-fill").style.width = pct + "%";
           document.getElementById("progress-count").textContent =
             p.done + " / " + p.total + " requêtes";
-          document.getElementById("progress-ok").textContent = p.ok + " OK";
-          if (cells[p.done - 1]) cells[p.done - 1].classList.add("hit");
+          document.getElementById("progress-ok").textContent =
+            p.ok + " OK · " + (p.done - p.ok) + " KO";
+          // Une requête réussie fait progresser ok ; sinon c'est un échec => cellule rouge.
+          if (cells[p.done - 1]) cells[p.done - 1].classList.add(p.ok > prevOk ? "hit" : "fail");
+          prevOk = p.ok;
+        });
+
+        // Le benchmark logue ses erreurs (HTTP 502…) sur stderr, relayées ici.
+        es.addEventListener("log", (ev) => {
+          try {
+            const line = JSON.parse(ev.data).line;
+            if (line && line.trim()) lastError = line.trim();
+          } catch (e) {}
         });
 
         es.addEventListener("done", async () => {
           es.close();
           currentStream = null;
-          document.getElementById("modal-title").textContent = "Benchmark " + label + " terminé ✓";
           closeBtn.textContent = "Fermer";
+          const ko = lastState.done - lastState.ok;
           await load();
-          status.textContent = "Benchmark " + label + " terminé.";
+          if (ko > 0) {
+            // Le processus s'est terminé, mais des requêtes ont échoué : ne PAS crier victoire.
+            const allFailed = lastState.ok === 0;
+            document.getElementById("modal-title").textContent =
+              (allFailed ? "Échec du benchmark " : "Benchmark ") + label + (allFailed ? "" : " terminé ⚠");
+            warn.style.display = "block";
+            warn.textContent =
+              "⚠ " + ko + " requête(s) sur " + lastState.done + " en échec (appel LLM). " +
+              (lastError ? "Dernière erreur : " + lastError : "Voir la console du serveur.");
+            status.textContent = "Benchmark " + label + " : " + ko + " échec(s).";
+          } else {
+            document.getElementById("modal-title").textContent = "Benchmark " + label + " terminé ✓";
+            status.textContent = "Benchmark " + label + " terminé.";
+          }
           setButtonsDisabled(false);
         });
 
@@ -342,6 +376,10 @@
           currentStream = null;
           document.getElementById("modal-title").textContent = "Échec du benchmark " + label;
           closeBtn.textContent = "Fermer";
+          warn.style.display = "block";
+          warn.textContent = lastError
+            ? "Dernière erreur : " + lastError
+            : "Le processus de benchmark n'a pas pu démarrer (voir console serveur).";
           status.textContent = "Échec du benchmark " + label + ".";
           setButtonsDisabled(false);
         });

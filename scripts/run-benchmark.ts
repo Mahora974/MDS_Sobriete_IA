@@ -78,8 +78,17 @@ async function main(): Promise<void> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt: entry.prompt, mode }),
     });
-    if (res.ok) ok += 1;
-    else console.error(`  ! requete ${entry.id} echouee (HTTP ${res.status})`);
+    if (res.ok) {
+      ok += 1;
+    } else {
+      // Remonte le détail renvoyé par /api/chat (ex. message de l'API LLM) pour
+      // un diagnostic clair côté dashboard, au lieu d'un simple code HTTP.
+      const detail = await res
+        .json()
+        .then((b) => b.detail || b.error || "")
+        .catch(() => "");
+      console.error(`  ! requete ${entry.id} echouee (HTTP ${res.status})${detail ? " : " + detail : ""}`);
+    }
     // Ligne de progression machine-lisible (consommée par le dashboard en SSE).
     done += 1;
     console.log(`[PROGRESS] ${done}/${prompts.length} ok=${ok}`);
