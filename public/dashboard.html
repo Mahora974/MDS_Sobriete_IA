@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard GreenOps — Proxy d'éco-conception IA</title>
+    <style>
+      :root {
+        --bg: #0f1419;
+        --card: #1a2129;
+        --border: #2a333d;
+        --text: #e6edf3;
+        --muted: #8b98a5;
+        --green: #2ea043;
+        --red: #e5534b;
+        --accent: #3fb950;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 2rem;
+      }
+      h1 { font-size: 1.5rem; margin: 0 0 0.25rem; }
+      .sub { color: var(--muted); margin: 0 0 1.5rem; font-size: 0.9rem; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.25rem;
+      }
+      .card h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0 0 1rem; }
+      table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+      td { padding: 0.4rem 0; border-bottom: 1px solid var(--border); }
+      td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+      tr:last-child td { border-bottom: none; }
+      .big { font-size: 2rem; font-weight: 700; color: var(--accent); }
+      .kpi { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; }
+      .badge { padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
+      .ok { background: rgba(46, 160, 67, 0.15); color: var(--green); }
+      .ko { background: rgba(229, 83, 75, 0.15); color: var(--red); }
+      .savings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 0.5rem; }
+      .savings div { text-align: center; }
+      .savings .big { font-size: 1.6rem; }
+      .savings small { color: var(--muted); display: block; margin-top: 0.2rem; }
+      button {
+        background: var(--accent); color: #0f1419; border: none; border-radius: 8px;
+        padding: 0.5rem 1rem; font-weight: 600; cursor: pointer; font-size: 0.9rem;
+      }
+      button:hover { opacity: 0.9; }
+      .toolbar { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+      .muted { color: var(--muted); font-size: 0.85rem; }
+      .empty { color: var(--muted); font-style: italic; }
+    </style>
+  </head>
+  <body>
+    <h1>Dashboard GreenOps</h1>
+    <p class="sub">Proxy d'éco-conception IA — synthèse cumulée Avant (V1) vs Après (V2)</p>
+
+    <div class="toolbar">
+      <button onclick="load()">Rafraîchir</button>
+      <span class="muted" id="status">Chargement…</span>
+    </div>
+
+    <div class="card" style="margin-bottom: 1rem;">
+      <h2>Économies réalisées (V1 → V2)</h2>
+      <div class="savings">
+        <div><div class="big" id="save-energy">—</div><small>énergie (Wh)</small></div>
+        <div><div class="big" id="save-co2">—</div><small>GES (gCO₂e)</small></div>
+        <div><div class="big" id="save-water">—</div><small>eau (mL)</small></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>V1 — Mode naïf</h2>
+        <table id="table-v1"></table>
+      </div>
+      <div class="card">
+        <h2>V2 — Mode responsable</h2>
+        <table id="table-v2"></table>
+      </div>
+      <div class="card">
+        <h2>Objectifs (KPIs)</h2>
+        <div class="kpi">
+          <span>Réduction énergie ≥ 60 %</span><span id="kpi-energy" class="badge">—</span>
+        </div>
+        <div class="kpi">
+          <span>Réduction GES ≥ 60 %</span><span id="kpi-co2" class="badge">—</span>
+        </div>
+        <div class="kpi">
+          <span>Taux de hit cache ≥ 25 %</span><span id="kpi-cache" class="badge">—</span>
+        </div>
+        <div style="margin-top: 1rem;">
+          <div class="big" id="cache-rate">—</div>
+          <small class="muted">taux de hit du cache (V2)</small>
+        </div>
+        <div style="margin-top: 1rem;" id="models"></div>
+      </div>
+    </div>
+
+    <script>
+      function fmt(n) {
+        return typeof n === "number" ? n.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) : n;
+      }
+
+      function rows(s) {
+        if (!s || s.requests === 0) return '<tr><td class="empty" colspan="2">Aucun run — lancez le benchmark.</td></tr>';
+        return [
+          ["Requêtes", s.requests],
+          ["Hits cache", s.cacheHits + " (" + (s.cacheHitRate * 100).toFixed(1) + " %)"],
+          ["Énergie (Wh)", fmt(s.totals.energyWh)],
+          ["GES (gCO₂e)", fmt(s.totals.gCO2e)],
+          ["Eau (mL)", fmt(s.totals.waterMl)],
+          ["Tokens sortie", fmt(s.totals.outputTokens)],
+        ].map(([k, v]) => "<tr><td>" + k + "</td><td>" + v + "</td></tr>").join("");
+      }
+
+      function badge(el, pass) {
+        el.textContent = pass ? "✓ atteint" : "✗ non atteint";
+        el.className = "badge " + (pass ? "ok" : "ko");
+      }
+
+      async function load() {
+        const status = document.getElementById("status");
+        try {
+          const m = await fetch("/api/metrics").then((r) => r.json());
+          document.getElementById("table-v1").innerHTML = rows(m.v1);
+          document.getElementById("table-v2").innerHTML = rows(m.v2);
+
+          const c = m.comparison;
+          document.getElementById("save-energy").textContent = c.energyReductionPct + " %";
+          document.getElementById("save-co2").textContent = c.co2ReductionPct + " %";
+          document.getElementById("save-water").textContent = c.waterReductionPct + " %";
+          document.getElementById("cache-rate").textContent = c.cacheHitRatePct + " %";
+
+          badge(document.getElementById("kpi-energy"), c.energyReductionPct >= 60);
+          badge(document.getElementById("kpi-co2"), c.co2ReductionPct >= 60);
+          badge(document.getElementById("kpi-cache"), c.cacheHitRatePct >= 25);
+
+          const byModel = (m.v2 && m.v2.byModel) || {};
+          document.getElementById("models").innerHTML =
+            '<small class="muted">Répartition V2 : ' +
+            (Object.keys(byModel).length
+              ? Object.entries(byModel).map(([k, v]) => k + " × " + v).join(" · ")
+              : "—") +
+            "</small>";
+
+          status.textContent = "Mis à jour : " + new Date().toLocaleTimeString("fr-FR");
+        } catch (e) {
+          status.textContent = "Erreur de chargement des métriques.";
+        }
+      }
+
+      load();
+    </script>
+  </body>
+</html>

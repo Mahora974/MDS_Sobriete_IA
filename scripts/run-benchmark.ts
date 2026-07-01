@@ -55,8 +55,11 @@ async function main(): Promise<void> {
   // 0. Le serveur doit tourner (le benchmark l'appelle via HTTP).
   await ensureServerUp();
 
-  // 1. Remise à zéro des métriques du mode.
+  // 1. Remise à zéro des métriques du mode (et du cache pour un run V2 propre).
   await fetch(`${BASE}/api/metrics/reset?mode=${mode}`, { method: "POST" });
+  if (mode === "v2") {
+    await fetch(`${BASE}/api/cache/reset`, { method: "POST" });
+  }
 
   // 2. Rejoue les prompts séquentiellement (ordre stable => cache reproductible).
   const start = Date.now();

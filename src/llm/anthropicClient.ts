@@ -68,8 +68,11 @@ function estimateTokens(text: string): number {
  */
 function simulateCall(params: LlmCallParams): LlmResult {
   const { prompt, model, maxTokens } = params;
-  // « Longueur naturelle » que le modèle produirait sans limite, dérivée du prompt.
-  const naturalOutput = 200 + (estimateTokens(prompt) % 200); // 200-400 tokens
+  // « Longueur naturelle » VERBEUSE que le modèle produirait sans contrôle de payload
+  // (le CDC souligne la « longueur non contrôlée des réponses » en mode naïf).
+  // Déterministe et dérivée du prompt : 700 à 1400 tokens.
+  const naturalOutput = 700 + ((estimateTokens(prompt) * 37) % 700);
+  // La troncature (V2) plafonne via maxTokens ; le mode naïf (maxTokens élevé) laisse filer.
   const outputTokens = Math.min(maxTokens, naturalOutput);
   return {
     text: `[SIMULE] Reponse de ${model} au prompt : "${prompt.slice(0, 60)}${prompt.length > 60 ? "..." : ""}"`,

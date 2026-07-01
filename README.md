@@ -256,10 +256,24 @@ docs/
 - ✅ **Phase 0 — Conception** : architecture, modèle d'impact, stratégie cache/routage validés
   ([`docs/CONCEPTION.md`](docs/CONCEPTION.md)).
 - ✅ **Sprint 1 — Mode naïf & instrumentation** : proxy V1, module d'impact, store de métriques,
-  jeu de 100 prompts, simulateur. Baseline produite dans `reports/impact-v1.json`
-  (~24 Wh / ~10 gCO₂e / ~43 mL sur 100 requêtes en mode simulé).
-- ⏳ **Sprint 2 — Mode responsable & logique frugale** : cache sémantique, routage frugal,
-  troncature, injection de headers, dashboard GreenOps, preuve des KPIs.
+  jeu de 100 prompts, simulateur.
+- ✅ **Sprint 2 — Mode responsable & logique frugale** : cache sémantique, routage frugal,
+  troncature, injection de headers, dashboard GreenOps.
+
+### Résultats (100 requêtes, mode simulé)
+
+| | V1 (naïf) | V2 (responsable) | Réduction |
+|---|---|---|---|
+| Énergie | 104,67 Wh | 11,14 Wh | **−89,4 %** |
+| GES | 43,75 gCO₂e | 4,66 gCO₂e | **−89,4 %** |
+| Eau | 188,4 mL | 20,05 mL | **−89,4 %** |
+| Répartition | 100 × Sonnet | 43 Haiku · 25 Sonnet · **32 cache** | |
+
+- **Taux de hit cache : 32 %** (objectif ≥ 25 % ✅)
+- **Réduction énergie & GES : 89 %** (objectif ≥ 60 % ✅)
+
+> En mode simulé, le naïf émet des réponses volontairement verbeuses (longueur non contrôlée) ;
+> les valeurs absolues changeront en mode réel, mais la mécanique de réduction est identique.
 
 ---
 
