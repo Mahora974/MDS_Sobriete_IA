@@ -6,13 +6,13 @@
   },
   {
     "id": 2,
-    "category": "repetitif",
-    "prompt": "Classe cet avis comme positif ou negatif : \"Livraison rapide, produit conforme.\""
+    "category": "simple",
+    "prompt": "Traduis en espagnol : \"Merci beaucoup\"."
   },
   {
     "id": 3,
-    "category": "repetitif",
-    "prompt": "Classe cet avis comme positif ou negatif : \"Livraison rapide, produit conforme.\""
+    "category": "complexe",
+    "prompt": "Explique en detail le fonctionnement d'un reseau de neurones convolutif."
   },
   {
     "id": 4,
@@ -21,73 +21,73 @@
   },
   {
     "id": 5,
-    "category": "repetitif",
-    "prompt": "Traduis en anglais : \"Bonjour, comment allez-vous aujourd'hui ?\""
-  },
-  {
-    "id": 6,
-    "category": "repetitif",
-    "prompt": "Traduis en anglais : \"Bonjour, comment allez-vous aujourd'hui ?\""
-  },
-  {
-    "id": 7,
-    "category": "repetitif",
-    "prompt": "Traduis en anglais : \"Bonjour, comment allez-vous aujourd'hui ?\""
-  },
-  {
-    "id": 8,
-    "category": "repetitif",
-    "prompt": "Traduis en anglais : \"Bonjour, comment allez-vous aujourd'hui ?\""
-  },
-  {
-    "id": 9,
-    "category": "repetitif",
-    "prompt": "Corrige l'orthographe : \"Il fait tres beaux dehors aujourdhui.\""
-  },
-  {
-    "id": 10,
-    "category": "repetitif",
-    "prompt": "Corrige l'orthographe : \"Il fait tres beaux dehors aujourdhui.\""
-  },
-  {
-    "id": 11,
-    "category": "repetitif",
-    "prompt": "Corrige l'orthographe : \"Il fait tres beaux dehors aujourdhui.\""
-  },
-  {
-    "id": 12,
-    "category": "repetitif",
-    "prompt": "Corrige l'orthographe : \"Il fait tres beaux dehors aujourdhui.\""
-  },
-  {
-    "id": 13,
-    "category": "simple",
-    "prompt": "Traduis en espagnol : \"Merci beaucoup\"."
-  },
-  {
-    "id": 14,
     "category": "simple",
     "prompt": "Corrige la phrase : \"Je vais au magasins demain.\""
   },
   {
-    "id": 15,
+    "id": 6,
+    "category": "complexe",
+    "prompt": "Redige une dissertation argumentee sur l'impact du numerique sur l'environnement."
+  },
+  {
+    "id": 7,
+    "category": "repetitif",
+    "prompt": "Classe cet avis comme positif ou negatif : \"Livraison rapide, produit conforme.\""
+  },
+  {
+    "id": 8,
     "category": "simple",
     "prompt": "Classe ce message comme spam ou non : \"Gagnez 1000 euros maintenant !\""
   },
   {
-    "id": 16,
+    "id": 9,
+    "category": "repetitif",
+    "prompt": "Classe cet avis comme positif ou negatif : \"Livraison rapide, produit conforme.\""
+  },
+  {
+    "id": 10,
+    "category": "complexe",
+    "prompt": "Ecris une fonction Python qui detecte si une chaine est un palindrome, avec tests."
+  },
+  {
+    "id": 11,
     "category": "simple",
     "prompt": "Resume en une phrase : \"Les energies renouvelables progressent.\""
   },
   {
-    "id": 17,
+    "id": 12,
+    "category": "repetitif",
+    "prompt": "Classe cet avis comme positif ou negatif : \"Livraison rapide, produit conforme.\""
+  },
+  {
+    "id": 13,
     "category": "simple",
     "prompt": "Quelle est la capitale de l'Italie ?"
   },
   {
-    "id": 18,
+    "id": 14,
+    "category": "complexe",
+    "prompt": "Analyse les avantages et inconvenients du teletravail pour une PME."
+  },
+  {
+    "id": 15,
+    "category": "repetitif",
+    "prompt": "Traduis en anglais : \"Bonjour, comment allez-vous aujourd'hui ?\""
+  },
+  {
+    "id": 16,
     "category": "simple",
     "prompt": "Donne l'antonyme de \"grand\"."
+  },
+  {
+    "id": 17,
+    "category": "repetitif",
+    "prompt": "Traduis en anglais : \"Bonjour, comment allez-vous aujourd'hui ?\""
+  },
+  {
+    "id": 18,
+    "category": "complexe",
+    "prompt": "Compare l'architecture monolithique et microservices avec exemples concrets."
   },
   {
     "id": 19,
@@ -96,57 +96,407 @@
   },
   {
     "id": 20,
-    "category": "simple",
-    "prompt": "Liste deux animaux marins."
+    "category": "repetitif",
+    "prompt": "Traduis en anglais : \"Bonjour, comment allez-vous aujourd'hui ?\""
   },
   {
     "id": 21,
-    "category": "simple",
-    "prompt": "Traduis en anglais : \"Bonne journee\"."
+    "category": "repetitif",
+    "prompt": "Traduis en anglais : \"Bonjour, comment allez-vous aujourd'hui ?\""
   },
   {
     "id": 22,
     "category": "simple",
-    "prompt": "Corrige : \"nous avons manger a midi\"."
+    "prompt": "Liste deux animaux marins."
   },
   {
     "id": 23,
-    "category": "simple",
-    "prompt": "Classe ce texte : sujet sport ou cuisine ? \"Le match a dure 90 minutes.\""
-  },
-  {
-    "id": 24,
-    "category": "complexe",
-    "prompt": "Explique en detail le fonctionnement d'un reseau de neurones convolutif."
-  },
-  {
-    "id": 25,
-    "category": "complexe",
-    "prompt": "Redige une dissertation argumentee sur l'impact du numerique sur l'environnement."
-  },
-  {
-    "id": 26,
-    "category": "complexe",
-    "prompt": "Ecris une fonction Python qui detecte si une chaine est un palindrome, avec tests."
-  },
-  {
-    "id": 27,
-    "category": "complexe",
-    "prompt": "Analyse les avantages et inconvenients du teletravail pour une PME."
-  },
-  {
-    "id": 28,
-    "category": "complexe",
-    "prompt": "Compare l'architecture monolithique et microservices avec exemples concrets."
-  },
-  {
-    "id": 29,
     "category": "complexe",
     "prompt": "Explique la theorie de la relativite restreinte a un etudiant de lycee."
   },
   {
-    "id": 30,
+    "id": 24,
+    "category": "repetitif",
+    "prompt": "Traduis en anglais : \"Bonjour, comment allez-vous aujourd'hui ?\""
+  },
+  {
+    "id": 25,
+    "category": "simple",
+    "prompt": "Traduis en anglais : \"Bonne journee\"."
+  },
+  {
+    "id": 26,
     "category": "complexe",
     "prompt": "Redige un plan de projet detaille pour lancer une application mobile."
+  },
+  {
+    "id": 27,
+    "category": "repetitif",
+    "prompt": "Corrige l'orthographe : \"Il fait tres beaux dehors aujourdhui.\""
+  },
+  {
+    "id": 28,
+    "category": "simple",
+    "prompt": "Corrige : \"nous avons manger a midi\"."
+  },
+  {
+    "id": 29,
+    "category": "repetitif",
+    "prompt": "Corrige l'orthographe : \"Il fait tres beaux dehors aujourdhui.\""
+  },
+  {
+    "id": 30,
+    "category": "complexe",
+    "prompt": "Ecris un algorithme de tri fusion en JavaScript et explique sa complexite."
+  },
+  {
+    "id": 31,
+    "category": "simple",
+    "prompt": "Classe ce texte : sujet sport ou cuisine ? \"Le match a dure 90 minutes.\""
+  },
+  {
+    "id": 32,
+    "category": "repetitif",
+    "prompt": "Corrige l'orthographe : \"Il fait tres beaux dehors aujourdhui.\""
+  },
+  {
+    "id": 33,
+    "category": "simple",
+    "prompt": "Resume : \"La reunion est reportee a lundi prochain.\""
+  },
+  {
+    "id": 34,
+    "category": "complexe",
+    "prompt": "Analyse les causes economiques de l'inflation et propose des leviers d'action."
+  },
+  {
+    "id": 35,
+    "category": "repetitif",
+    "prompt": "Corrige l'orthographe : \"Il fait tres beaux dehors aujourdhui.\""
+  },
+  {
+    "id": 36,
+    "category": "simple",
+    "prompt": "Quelle est la capitale de l'Allemagne ?"
+  },
+  {
+    "id": 37,
+    "category": "repetitif",
+    "prompt": "Corrige l'orthographe : \"Il fait tres beaux dehors aujourdhui.\""
+  },
+  {
+    "id": 38,
+    "category": "complexe",
+    "prompt": "Explique le principe du chiffrement asymetrique RSA etape par etape."
+  },
+  {
+    "id": 39,
+    "category": "simple",
+    "prompt": "Donne un synonyme de \"content\"."
+  },
+  {
+    "id": 40,
+    "category": "repetitif",
+    "prompt": "Resume en une phrase : \"Le teletravail se generalise dans les entreprises.\""
+  },
+  {
+    "id": 41,
+    "category": "repetitif",
+    "prompt": "Resume en une phrase : \"Le teletravail se generalise dans les entreprises.\""
+  },
+  {
+    "id": 42,
+    "category": "simple",
+    "prompt": "Convertis 30 degres Celsius en Fahrenheit."
+  },
+  {
+    "id": 43,
+    "category": "complexe",
+    "prompt": "Redige un essai sur l'ethique de l'intelligence artificielle generative."
+  },
+  {
+    "id": 44,
+    "category": "repetitif",
+    "prompt": "Resume en une phrase : \"Le teletravail se generalise dans les entreprises.\""
+  },
+  {
+    "id": 45,
+    "category": "simple",
+    "prompt": "Liste trois couleurs primaires."
+  },
+  {
+    "id": 46,
+    "category": "complexe",
+    "prompt": "Concois un schema de base de donnees relationnelle pour une bibliotheque."
+  },
+  {
+    "id": 47,
+    "category": "repetitif",
+    "prompt": "Resume en une phrase : \"Le teletravail se generalise dans les entreprises.\""
+  },
+  {
+    "id": 48,
+    "category": "simple",
+    "prompt": "Traduis en anglais : \"Je ne comprends pas.\""
+  },
+  {
+    "id": 49,
+    "category": "repetitif",
+    "prompt": "Resume en une phrase : \"Le teletravail se generalise dans les entreprises.\""
+  },
+  {
+    "id": 50,
+    "category": "complexe",
+    "prompt": "Explique les differences entre apprentissage supervise et non supervise avec exemples."
+  },
+  {
+    "id": 51,
+    "category": "simple",
+    "prompt": "Corrige : \"il ont fini leur travail\"."
+  },
+  {
+    "id": 52,
+    "category": "repetitif",
+    "prompt": "Quelle est la capitale de la France ?"
+  },
+  {
+    "id": 53,
+    "category": "simple",
+    "prompt": "Vrai ou faux : la Terre tourne autour du Soleil ?"
+  },
+  {
+    "id": 54,
+    "category": "complexe",
+    "prompt": "Redige une analyse SWOT complete pour une startup de mobilite electrique."
+  },
+  {
+    "id": 55,
+    "category": "repetitif",
+    "prompt": "Quelle est la capitale de la France ?"
+  },
+  {
+    "id": 56,
+    "category": "simple",
+    "prompt": "Resume en une phrase : \"Le nouveau logiciel ameliore la productivite.\""
+  },
+  {
+    "id": 57,
+    "category": "repetitif",
+    "prompt": "Quelle est la capitale de la France ?"
+  },
+  {
+    "id": 58,
+    "category": "complexe",
+    "prompt": "Ecris une classe TypeScript implementant une file de priorite avec commentaires."
+  },
+  {
+    "id": 59,
+    "category": "simple",
+    "prompt": "Quelle est la capitale de l'Espagne ?"
+  },
+  {
+    "id": 60,
+    "category": "repetitif",
+    "prompt": "Quelle est la capitale de la France ?"
+  },
+  {
+    "id": 61,
+    "category": "repetitif",
+    "prompt": "Quelle est la capitale de la France ?"
+  },
+  {
+    "id": 62,
+    "category": "simple",
+    "prompt": "Donne l'antonyme de \"rapide\"."
+  },
+  {
+    "id": 63,
+    "category": "complexe",
+    "prompt": "Analyse l'impact environnemental du cycle de vie d'un smartphone."
+  },
+  {
+    "id": 64,
+    "category": "repetitif",
+    "prompt": "Donne un synonyme du mot \"rapide\"."
+  },
+  {
+    "id": 65,
+    "category": "simple",
+    "prompt": "Convertis 10 miles en kilometres."
+  },
+  {
+    "id": 66,
+    "category": "complexe",
+    "prompt": "Explique le theoreme central limite et son importance en statistiques."
+  },
+  {
+    "id": 67,
+    "category": "repetitif",
+    "prompt": "Donne un synonyme du mot \"rapide\"."
+  },
+  {
+    "id": 68,
+    "category": "simple",
+    "prompt": "Liste deux planetes du systeme solaire."
+  },
+  {
+    "id": 69,
+    "category": "repetitif",
+    "prompt": "Donne un synonyme du mot \"rapide\"."
+  },
+  {
+    "id": 70,
+    "category": "complexe",
+    "prompt": "Redige une strategie de sobriete numerique pour une entreprise de 200 personnes."
+  },
+  {
+    "id": 71,
+    "category": "simple",
+    "prompt": "Traduis en italien : \"Bonjour\"."
+  },
+  {
+    "id": 72,
+    "category": "repetitif",
+    "prompt": "Donne un synonyme du mot \"rapide\"."
+  },
+  {
+    "id": 73,
+    "category": "simple",
+    "prompt": "Corrige : \"ces livres sont a moi, se sont les miens\"."
+  },
+  {
+    "id": 74,
+    "category": "complexe",
+    "prompt": "Compare trois strategies de mise en cache et leurs cas d'usage."
+  },
+  {
+    "id": 75,
+    "category": "repetitif",
+    "prompt": "Donne un synonyme du mot \"rapide\"."
+  },
+  {
+    "id": 76,
+    "category": "simple",
+    "prompt": "Classe cet avis : positif ou negatif ? \"Service client decevant.\""
+  },
+  {
+    "id": 77,
+    "category": "repetitif",
+    "prompt": "Convertis 100 kilometres en miles."
+  },
+  {
+    "id": 78,
+    "category": "complexe",
+    "prompt": "Explique comment fonctionne le protocole HTTPS de bout en bout."
+  },
+  {
+    "id": 79,
+    "category": "simple",
+    "prompt": "Resume : \"Le budget annuel a ete valide par le conseil.\""
+  },
+  {
+    "id": 80,
+    "category": "repetitif",
+    "prompt": "Convertis 100 kilometres en miles."
+  },
+  {
+    "id": 81,
+    "category": "repetitif",
+    "prompt": "Convertis 100 kilometres en miles."
+  },
+  {
+    "id": 82,
+    "category": "simple",
+    "prompt": "Quelle est la capitale du Portugal ?"
+  },
+  {
+    "id": 83,
+    "category": "complexe",
+    "prompt": "Redige un cahier des charges fonctionnel pour un site e-commerce."
+  },
+  {
+    "id": 84,
+    "category": "repetitif",
+    "prompt": "Convertis 100 kilometres en miles."
+  },
+  {
+    "id": 85,
+    "category": "simple",
+    "prompt": "Donne un synonyme de \"important\"."
+  },
+  {
+    "id": 86,
+    "category": "complexe",
+    "prompt": "Analyse les enjeux de la souverainete des donnees dans le cloud."
+  },
+  {
+    "id": 87,
+    "category": "repetitif",
+    "prompt": "Convertis 100 kilometres en miles."
+  },
+  {
+    "id": 88,
+    "category": "simple",
+    "prompt": "Convertis 2 heures en minutes."
+  },
+  {
+    "id": 89,
+    "category": "repetitif",
+    "prompt": "Liste trois fruits de couleur rouge."
+  },
+  {
+    "id": 90,
+    "category": "complexe",
+    "prompt": "Ecris un script qui calcule l'empreinte carbone d'un trajet, avec explications."
+  },
+  {
+    "id": 91,
+    "category": "simple",
+    "prompt": "Liste trois metiers du numerique."
+  },
+  {
+    "id": 92,
+    "category": "repetitif",
+    "prompt": "Liste trois fruits de couleur rouge."
+  },
+  {
+    "id": 93,
+    "category": "simple",
+    "prompt": "Vrai ou faux : l'eau bout a 100 degres au niveau de la mer ?"
+  },
+  {
+    "id": 94,
+    "category": "complexe",
+    "prompt": "Explique les principes SOLID de la conception orientee objet avec exemples."
+  },
+  {
+    "id": 95,
+    "category": "repetitif",
+    "prompt": "Liste trois fruits de couleur rouge."
+  },
+  {
+    "id": 96,
+    "category": "simple",
+    "prompt": "Traduis en anglais : \"A bientot\"."
+  },
+  {
+    "id": 97,
+    "category": "repetitif",
+    "prompt": "Liste trois fruits de couleur rouge."
+  },
+  {
+    "id": 98,
+    "category": "complexe",
+    "prompt": "Redige une note de synthese sur les modeles de langage et leur cout energetique."
+  },
+  {
+    "id": 99,
+    "category": "simple",
+    "prompt": "Corrige : \"la voiture rouge sont rapide\"."
+  },
+  {
+    "id": 100,
+    "category": "repetitif",
+    "prompt": "Liste trois fruits de couleur rouge."
   }
 ]

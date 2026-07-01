@@ -27,6 +27,11 @@ interface PromptEntry {
 const args = process.argv.slice(2);
 const modeArg = args.find((a) => a.startsWith("--mode="))?.split("=")[1];
 const mode: Mode = modeArg === "v2" ? "v2" : "v1";
+
+// Volume de test : nombre de prompts à rejouer (défaut = tout le jeu).
+// Piloté par la roue dentée du dashboard pour maîtriser le coût d'une démo live.
+const limitArg = args.find((a) => a.startsWith("--limit="))?.split("=")[1];
+const limit = limitArg ? Math.max(1, Number(limitArg) || 0) : undefined;
 const PORT = process.env.PORT ?? "3000";
 const BASE = `http://localhost:${PORT}`;
 
@@ -49,7 +54,9 @@ async function ensureServerUp(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  const prompts: PromptEntry[] = JSON.parse(readFileSync("data/prompts.json", "utf-8"));
+  const all: PromptEntry[] = JSON.parse(readFileSync("data/prompts.json", "utf-8"));
+  // Le jeu est entrelacé : les N premiers restent représentatifs (40/35/25 + doublons).
+  const prompts = limit ? all.slice(0, limit) : all;
   console.log(`Benchmark mode=${mode} — ${prompts.length} requetes vers ${BASE}`);
 
   // 0. Le serveur doit tourner (le benchmark l'appelle via HTTP).

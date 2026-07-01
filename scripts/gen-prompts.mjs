@@ -100,16 +100,44 @@ const basesToUse = Math.min(repeatBase.length, Math.max(2, Math.floor(nRep / 4))
 const perBase = Math.floor(nRep / basesToUse);
 const extra = nRep - perBase * basesToUse; // répétitions résiduelles à saupoudrer
 
-const prompts = [];
-let id = 1;
+// Construit les trois groupes séparément…
+const repetitif = [];
 for (let b = 0; b < basesToUse; b++) {
   const times = perBase + (b < extra ? 1 : 0);
-  for (let k = 0; k < times; k++) {
-    prompts.push({ id: id++, category: "repetitif", prompt: repeatBase[b] });
-  }
+  for (let k = 0; k < times; k++) repetitif.push({ category: "repetitif", prompt: repeatBase[b] });
 }
-for (const p of simple.slice(0, nSimple)) prompts.push({ id: id++, category: "simple", prompt: p });
-for (const p of complex.slice(0, nComplex)) prompts.push({ id: id++, category: "complexe", prompt: p });
+const simples = simple.slice(0, nSimple).map((p) => ({ category: "simple", prompt: p }));
+const complexes = complex.slice(0, nComplex).map((p) => ({ category: "complexe", prompt: p }));
+
+/**
+ * …puis les entrelace proportionnellement (round-robin par plus faible ratio émis/total).
+ * Objectif : n'IMPORTE quel préfixe des N premiers prompts reste représentatif de la
+ * répartition 40/35/25 — indispensable pour que le curseur de volume du dashboard
+ * (1..100) donne un run cohérent quel que soit N. Les copies d'un même prompt répétitif
+ * restent dans l'ordre, donc les doublons se répartissent au fil de la séquence (=> cache).
+ */
+function interleave(groups) {
+  const idx = groups.map(() => 0);
+  const total = groups.reduce((s, g) => s + g.length, 0);
+  const out = [];
+  for (let n = 0; n < total; n++) {
+    let best = -1;
+    let bestScore = Infinity;
+    for (let g = 0; g < groups.length; g++) {
+      if (idx[g] >= groups[g].length) continue;
+      const score = idx[g] / groups[g].length; // avancement relatif du groupe
+      if (score < bestScore) {
+        bestScore = score;
+        best = g;
+      }
+    }
+    out.push(groups[best][idx[best]]);
+    idx[best]++;
+  }
+  return out;
+}
+
+const prompts = interleave([repetitif, simples, complexes]).map((p, i) => ({ id: i + 1, ...p }));
 
 writeFileSync("data/prompts.json", JSON.stringify(prompts, null, 2) + "\n");
 

@@ -56,6 +56,12 @@ app.get("/api/benchmark/:mode/stream", (req, res) => {
   const mode = req.params.mode === "v2" ? "v2" : "v1";
   const cwd = join(__dirname, "..");
 
+  // Volume de test optionnel (roue dentée du dashboard), borné à [1, 100].
+  const rawCount = Number(req.query.count);
+  const count = Number.isFinite(rawCount) ? Math.min(100, Math.max(1, Math.trunc(rawCount))) : undefined;
+  const benchArgs = ["tsx", "scripts/run-benchmark.ts", `--mode=${mode}`];
+  if (count !== undefined) benchArgs.push(`--limit=${count}`);
+
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
@@ -66,7 +72,7 @@ app.get("/api/benchmark/:mode/stream", (req, res) => {
   };
 
   // Rejoue le simulateur de charge dans un sous-processus (même commande qu'en CLI).
-  const child = spawn("npx", ["tsx", "scripts/run-benchmark.ts", `--mode=${mode}`], {
+  const child = spawn("npx", benchArgs, {
     cwd,
     shell: true,
     env: process.env,
