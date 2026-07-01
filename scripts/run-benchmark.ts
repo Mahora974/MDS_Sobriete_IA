@@ -1,10 +1,10 @@
 /**
  * Simulateur de charge.
  *
- * Rejoue le jeu de 100 prompts a travers le proxy (mode v1 ou v2), puis compile
- * l'impact cumule et ecrit un rapport dans reports/impact-<mode>.json.
+ * Rejoue le jeu de 100 prompts à travers le proxy (mode v1 ou v2), puis compile
+ * l'impact cumulé et écrit un rapport dans reports/impact-<mode>.json.
  *
- * Prerequis : le serveur doit tourner (npm run dev).
+ * Prérequis : le serveur doit tourner (npm run dev).
  *
  * Usage :
  *   npx tsx scripts/run-benchmark.ts --mode=v1
@@ -30,10 +30,10 @@ async function main(): Promise<void> {
   const prompts: PromptEntry[] = JSON.parse(readFileSync("data/prompts.json", "utf-8"));
   console.log(`Benchmark mode=${mode} — ${prompts.length} requetes vers ${BASE}`);
 
-  // 1. Remise a zero des metriques du mode.
+  // 1. Remise à zéro des métriques du mode.
   await fetch(`${BASE}/api/metrics/reset?mode=${mode}`, { method: "POST" });
 
-  // 2. Rejoue les prompts sequentiellement (ordre stable => cache reproductible).
+  // 2. Rejoue les prompts séquentiellement (ordre stable => cache reproductible).
   const start = Date.now();
   let ok = 0;
   for (const entry of prompts) {
@@ -47,11 +47,11 @@ async function main(): Promise<void> {
   }
   const elapsedMs = Date.now() - start;
 
-  // 3. Recupere la synthese cumulee cote serveur.
+  // 3. Récupère la synthèse cumulée côté serveur.
   const metrics = await fetch(`${BASE}/api/metrics`).then((r) => r.json());
   const summary = metrics[mode];
 
-  // 4. Ecrit le rapport.
+  // 4. Écrit le rapport.
   mkdirSync("reports", { recursive: true });
   const report = {
     mode,
@@ -65,7 +65,7 @@ async function main(): Promise<void> {
   const path = `reports/impact-${mode}.json`;
   writeFileSync(path, JSON.stringify(report, null, 2) + "\n");
 
-  // 5. Resume console.
+  // 5. Résumé console.
   console.log(`\n=== RAPPORT ${mode.toUpperCase()} ===`);
   console.log(`Requetes OK        : ${ok}/${prompts.length}  (${elapsedMs} ms)`);
   console.log(`Hits cache         : ${summary.cacheHits} (${(summary.cacheHitRate * 100).toFixed(1)}%)`);

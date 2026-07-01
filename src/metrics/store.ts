@@ -3,7 +3,7 @@ import type { Impact } from "../impact/calculator.js";
 
 export type Mode = "v1" | "v2";
 
-/** Une entree de metrique = une requete traitee par le proxy. */
+/** Une entrée de métrique = une requête traitée par le proxy. */
 export interface MetricRecord {
   mode: Mode;
   model: ModelId | "cache";
@@ -12,7 +12,7 @@ export interface MetricRecord {
   impact: Impact;
 }
 
-/** Synthese cumulee pour un mode donne. */
+/** Synthèse cumulée pour un mode donné. */
 export interface MetricsSummary {
   mode: Mode;
   requests: number;
@@ -25,11 +25,11 @@ export interface MetricsSummary {
     inputTokens: number;
     outputTokens: number;
   };
-  /** Repartition du nombre de requetes par modele (ou "cache"). */
+  /** Répartition du nombre de requêtes par modèle (ou « cache »). */
   byModel: Record<string, number>;
 }
 
-// Store en memoire : un tableau d'enregistrements par mode.
+// Store en mémoire : un tableau d'enregistrements par mode.
 const records: Record<Mode, MetricRecord[]> = { v1: [], v2: [] };
 
 function round(value: number, decimals = 4): number {
@@ -37,12 +37,12 @@ function round(value: number, decimals = 4): number {
   return Math.round(value * f) / f;
 }
 
-/** Enregistre une requete traitee. */
+/** Enregistre une requête traitée. */
 export function record(entry: MetricRecord): void {
   records[entry.mode].push(entry);
 }
 
-/** Vide les metriques d'un mode (ou de tous si non precise). */
+/** Vide les métriques d'un mode (ou de tous si non précisé). */
 export function reset(mode?: Mode): void {
   if (mode) {
     records[mode] = [];
@@ -52,7 +52,7 @@ export function reset(mode?: Mode): void {
   }
 }
 
-/** Calcule la synthese cumulee d'un mode. */
+/** Calcule la synthèse cumulée d'un mode. */
 export function summarize(mode: Mode): MetricsSummary {
   const list = records[mode];
   const totals = { energyWh: 0, gCO2e: 0, waterMl: 0, inputTokens: 0, outputTokens: 0 };
@@ -85,7 +85,7 @@ export function summarize(mode: Mode): MetricsSummary {
   };
 }
 
-/** Synthese des deux modes + comparaison V1 -> V2 (% de reduction). */
+/** Synthèse des deux modes + comparaison V1 -> V2 (% de réduction). */
 export function summarizeAll() {
   const v1 = summarize("v1");
   const v2 = summarize("v2");

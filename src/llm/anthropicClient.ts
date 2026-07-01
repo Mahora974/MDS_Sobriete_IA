@@ -1,9 +1,9 @@
 import Anthropic from "@anthropic-ai/sdk";
 
 /**
- * Identifiants des modeles Claude utilises par le proxy.
- * - SONNET : gros modele "lourd" (utilise par defaut en mode naif V1).
- * - HAIKU  : modele "frugal" (utilise par le routage V2 pour les taches simples).
+ * Identifiants des modèles Claude utilisés par le proxy.
+ * - SONNET : gros modèle « lourd » (utilisé par défaut en mode naïf V1).
+ * - HAIKU  : modèle « frugal » (utilisé par le routage V2 pour les tâches simples).
  */
 export const MODELS = {
   SONNET: "claude-sonnet-4-6",
@@ -32,7 +32,7 @@ export interface LlmCallParams {
 
 const SIMULATE = process.env.SIMULATE_LLM === "true";
 
-// Client SDK instancie une seule fois (uniquement si on n'est pas en mode simule).
+// Client SDK instancié une seule fois (uniquement si on n'est pas en mode simulé).
 let client: Anthropic | null = null;
 function getClient(): Anthropic {
   if (!client) {
@@ -48,8 +48,8 @@ function getClient(): Anthropic {
 }
 
 /**
- * Estimation deterministe du nombre de tokens (~1.3 token par mot).
- * Sert au mode simule et de repli si l'API ne renvoyait pas d'usage.
+ * Estimation déterministe du nombre de tokens (~1,3 token par mot).
+ * Sert au mode simulé et de repli si l'API ne renvoyait pas d'usage.
  */
 function estimateTokens(text: string): number {
   const words = text.trim().split(/\s+/).filter(Boolean).length;
@@ -57,13 +57,13 @@ function estimateTokens(text: string): number {
 }
 
 /**
- * Reponse factice deterministe (mode simule) : meme prompt => meme sortie.
- * La longueur de sortie est bornee par maxTokens, ce qui rend l'effet de la
+ * Réponse factice déterministe (mode simulé) : même prompt => même sortie.
+ * La longueur de sortie est bornée par maxTokens, ce qui rend l'effet de la
  * troncature (Couche 3, V2) directement mesurable.
  */
 function simulateCall(params: LlmCallParams): LlmResult {
   const { prompt, model, maxTokens } = params;
-  // "Longueur naturelle" que le modele produirait sans limite, derivee du prompt.
+  // « Longueur naturelle » que le modèle produirait sans limite, dérivée du prompt.
   const naturalOutput = 200 + (estimateTokens(prompt) % 200); // 200-400 tokens
   const outputTokens = Math.min(maxTokens, naturalOutput);
   return {
@@ -75,7 +75,7 @@ function simulateCall(params: LlmCallParams): LlmResult {
 }
 
 /**
- * Appelle un modele Claude (ou renvoie une reponse simulee si SIMULATE_LLM=true).
+ * Appelle un modèle Claude (ou renvoie une réponse simulée si SIMULATE_LLM=true).
  */
 export async function callLLM(params: LlmCallParams): Promise<LlmResult> {
   if (SIMULATE) {

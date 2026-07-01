@@ -1,7 +1,8 @@
-// Generateur deterministe du jeu de 100 prompts (data/prompts.json).
-// Repartition : 40 repetitifs (8 bases x 5) + 35 simples + 25 complexes.
+// Générateur déterministe du jeu de 100 prompts (data/prompts.json).
+// Répartition : 40 répétitifs (8 bases x 5) + 35 simples + 25 complexes.
 import { writeFileSync } from "node:fs";
 
+// prompts RÉPÉTITIFS -> alimentent le cache (chacun répété 5x)
 const repeatBase = [
   'Classe cet avis comme positif ou negatif : "Livraison rapide, produit conforme."',
   'Traduis en anglais : "Bonjour, comment allez-vous aujourd\'hui ?"',
@@ -13,6 +14,7 @@ const repeatBase = [
   "Liste trois fruits de couleur rouge.",
 ];
 
+// prompts SIMPLES -> routage frugal (Haiku)
 const simple = [
   'Traduis en espagnol : "Merci beaucoup".',
   'Corrige la phrase : "Je vais au magasins demain."',
@@ -51,6 +53,7 @@ const simple = [
   'Corrige : "la voiture rouge sont rapide".',
 ];
 
+// prompts COMPLEXES -> gros modèle (Sonnet)
 const complex = [
   "Explique en detail le fonctionnement d'un reseau de neurones convolutif.",
   "Redige une dissertation argumentee sur l'impact du numerique sur l'environnement.",

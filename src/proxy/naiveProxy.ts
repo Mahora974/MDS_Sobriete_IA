@@ -4,18 +4,16 @@ import { computeImpact } from "../impact/calculator.js";
 import { record } from "../metrics/store.js";
 
 /**
- * Limite de tokens en sortie du mode NAIF (V1).
- * Volontairement elevee : le proxy naif n'applique AUCUN controle de payload.
+ * Limite de tokens en sortie du mode NAÏF (V1).
+ * Volontairement élevée : le proxy naïf n'applique AUCUN contrôle de payload.
  */
 const NAIVE_MAX_TOKENS = 4096;
 
 /**
- * Pipeline V1 — Mode naif & instrumentation.
+ * Pipeline V1 — Mode naïf & instrumentation.
  *
  * Aucune optimisation : pas de cache, pas de routage, pas de troncature.
- * Toutes les requetes partent vers le gros modele (Sonnet) avec un max_tokens eleve.
- *
- * (La mesure d'impact et le store de metriques sont ajoutes aux points 3 et 4.)
+ * Toutes les requêtes partent vers le gros modèle (Sonnet) avec un max_tokens élevé.
  */
 export async function naiveProxyHandler(req: Request, res: Response): Promise<void> {
   const prompt = req.body?.prompt;
@@ -34,7 +32,7 @@ export async function naiveProxyHandler(req: Request, res: Response): Promise<vo
 
     const impact = computeImpact(result.model, result.usage);
 
-    // Le mode naif ne fait jamais de cache : cacheHit toujours false.
+    // Le mode naïf ne fait jamais de cache : cacheHit toujours false.
     record({
       mode: "v1",
       model: result.model,

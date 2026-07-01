@@ -6,32 +6,32 @@ import {
   WATER_WUE_L_PER_KWH,
 } from "./factors.js";
 
-/** Impact environnemental d'une requete. */
+/** Impact environnemental d'une requête. */
 export interface Impact {
-  /** Energie consommee (Wh). */
+  /** Énergie consommée (Wh). */
   energyWh: number;
-  /** Emissions de gaz a effet de serre (grammes equivalent CO2). */
+  /** Émissions de gaz à effet de serre (grammes équivalent CO2). */
   gCO2e: number;
-  /** Eau consommee (millilitres). */
+  /** Eau consommée (millilitres). */
   waterMl: number;
 }
 
-/** Arrondi a n decimales pour des sorties lisibles. */
+/** Arrondi à n décimales pour des sorties lisibles. */
 function round(value: number, decimals = 4): number {
   const f = 10 ** decimals;
   return Math.round(value * f) / f;
 }
 
 /**
- * Calcule l'impact d'une requete a partir du modele utilise et de l'usage tokens.
+ * Calcule l'impact d'une requête à partir du modèle utilisé et de l'usage tokens.
  *
  *   energie_Wh  = tokens_sortie * Wh_par_token(modele) + part_fixe
  *   energie_kWh = energie_Wh / 1000
  *   gCO2e       = energie_kWh * intensite_carbone
  *   eau_mL      = energie_kWh * WUE * 1000
  *
- * L'energie est indexee sur les tokens de SORTIE (principal levier de cout de
- * l'inference), ce qui rend la troncature (Couche 3, V2) directement mesurable.
+ * L'énergie est indexée sur les tokens de SORTIE (principal levier de coût de
+ * l'inférence), ce qui rend la troncature (Couche 3, V2) directement mesurable.
  */
 export function computeImpact(model: ModelId, usage: LlmUsage): Impact {
   const energyWh = usage.outputTokens * WH_PER_OUTPUT_TOKEN[model] + FIXED_WH_PER_REQUEST;
@@ -45,7 +45,7 @@ export function computeImpact(model: ModelId, usage: LlmUsage): Impact {
 }
 
 /**
- * Impact nul — utilise lorsqu'une requete est resolue par le cache (Couche 1, V2) :
+ * Impact nul — utilisé lorsqu'une requête est résolue par le cache (Couche 1, V2) :
  * aucun appel LLM => aucune consommation.
  */
 export function zeroImpact(): Impact {
