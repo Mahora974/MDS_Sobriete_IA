@@ -11,6 +11,10 @@
  *   npx tsx scripts/run-benchmark.ts --mode=v2   (Sprint 2)
  */
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import dotenv from "dotenv";
+
+// Charge le .env pour lire le MÊME port que le serveur.
+dotenv.config();
 
 type Mode = "v1" | "v2";
 
@@ -26,9 +30,30 @@ const mode: Mode = modeArg === "v2" ? "v2" : "v1";
 const PORT = process.env.PORT ?? "3000";
 const BASE = `http://localhost:${PORT}`;
 
+/**
+ * Vérifie que le serveur répond avant de lancer le benchmark, et affiche un
+ * message clair sinon (plutôt qu'une stack ECONNREFUSED).
+ */
+async function ensureServerUp(): Promise<void> {
+  try {
+    const res = await fetch(`${BASE}/health`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  } catch {
+    console.error(
+      `\nImpossible de joindre le serveur sur ${BASE}.\n` +
+        `Demarre-le dans un autre terminal avec :  npm run dev\n` +
+        `(et verifie que le PORT du .env correspond)\n`,
+    );
+    process.exit(1);
+  }
+}
+
 async function main(): Promise<void> {
   const prompts: PromptEntry[] = JSON.parse(readFileSync("data/prompts.json", "utf-8"));
   console.log(`Benchmark mode=${mode} — ${prompts.length} requetes vers ${BASE}`);
+
+  // 0. Le serveur doit tourner (le benchmark l'appelle via HTTP).
+  await ensureServerUp();
 
   // 1. Remise à zéro des métriques du mode.
   await fetch(`${BASE}/api/metrics/reset?mode=${mode}`, { method: "POST" });

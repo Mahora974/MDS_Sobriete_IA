@@ -30,7 +30,12 @@ export interface LlmCallParams {
   maxTokens: number;
 }
 
-const SIMULATE = process.env.SIMULATE_LLM === "true";
+/**
+ * Indique si le mode simulé est actif.
+ * Lu à l'appel (et non au chargement du module) pour que dotenv.config() ait
+ * eu le temps de charger le .env avant la première lecture.
+ */
+export const isSimulated = (): boolean => process.env.SIMULATE_LLM === "true";
 
 // Client SDK instancié une seule fois (uniquement si on n'est pas en mode simulé).
 let client: Anthropic | null = null;
@@ -78,7 +83,7 @@ function simulateCall(params: LlmCallParams): LlmResult {
  * Appelle un modèle Claude (ou renvoie une réponse simulée si SIMULATE_LLM=true).
  */
 export async function callLLM(params: LlmCallParams): Promise<LlmResult> {
-  if (SIMULATE) {
+  if (isSimulated()) {
     return simulateCall(params);
   }
 
@@ -104,5 +109,3 @@ export async function callLLM(params: LlmCallParams): Promise<LlmResult> {
     simulated: false,
   };
 }
-
-export const isSimulated = (): boolean => SIMULATE;

@@ -8,7 +8,7 @@ dotenv.config();
 const app = express();
 app.use(express.json({ limit: "1mb" }));
 
-const PORT = Number(process.env.PORT ?? 3000);
+const PORT = Number(process.env.PORT ?? 3001);
 
 // Healthcheck — vérifie simplement que le serveur boote.
 app.get("/health", (_req, res) => {
